@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs & os
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# migrations copied next to the bot bundle at build time
+apps/bot/drizzle/

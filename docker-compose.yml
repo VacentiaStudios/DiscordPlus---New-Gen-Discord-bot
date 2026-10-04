@@ -1,0 +1,86 @@
+name: discordplus
+
+x-database-url: &database-url postgres://discordplus:${POSTGRES_PASSWORD:-discordplus}@postgres:5432/discordplus
+
+x-bot-build: &bot-build
+  context: .
+  dockerfile: apps/bot/Dockerfile
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: discordplus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-discordplus}
+      POSTGRES_DB: discordplus
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U discordplus -d discordplus']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Applies database migrations once, before the bot and the web panel start.
+  migrate:
+    image: discordplus-bot
+    build: *bot-build
+    command: ['node', 'dist/migrate.js']
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  bot:
+    image: discordplus-bot
+    build: *bot-build
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: *database-url
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  web:
+    image: discordplus-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - '127.0.0.1:3000:3000'
+    restart: unless-stopped
+
+  # HTTPS reverse proxy: `docker compose --profile production up -d` with DOMAIN set in .env.
+  caddy:
+    image: caddy:2-alpine
+    profiles: [production]
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
