@@ -1,6 +1,5 @@
 'use client';
 
-import { Hash } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -11,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { ChannelGroup } from '@/server/guild-data';
+import type { ChannelGroup } from '@/lib/channels';
+import { ChannelIcon } from './channel-icon';
 
 const OFF = '__off__';
 
@@ -41,7 +41,7 @@ export function ChannelSelect({
         <SelectItem value={OFF}>{offLabel}</SelectItem>
         {value && !known ? (
           <SelectItem value={value} disabled>
-            <Hash />
+            <ChannelIcon />
             silinmiş kanal
           </SelectItem>
         ) : null}
@@ -51,7 +51,7 @@ export function ChannelSelect({
             {group.category ? <SelectLabel>{group.category}</SelectLabel> : null}
             {group.channels.map((channel) => (
               <SelectItem key={channel.id} value={channel.id}>
-                <Hash />
+                <ChannelIcon channelType={channel.type} />
                 {channel.name}
               </SelectItem>
             ))}

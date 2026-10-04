@@ -17,10 +17,13 @@ export const LOG_CATEGORY_DESCRIPTIONS: Record<LogCategory, string> = {
   message: 'Silinen, düzenlenen ve toplu silinen mesajlar.',
   member: 'Katılma, ayrılma, takma ad, rol, kullanıcı adı ve avatar değişiklikleri.',
   server: 'Kanal, rol ve sunucu ayarlarındaki değişiklikler.',
-  voice: 'Ses kanalına katılma, ayrılma ve kanal değiştirme.',
+  voice:
+    'Ses kanalına katılma, ayrılma, kanal değiştirme; sunucu tarafından susturma ve sağırlaştırma.',
 };
 
 const channelId = snowflakeSchema.nullable().default(null);
+
+export const MAX_IGNORED_LOG_CHANNELS = 100;
 
 export const loggingSettingsSchema = z.object({
   /** Target channel per category; null turns the category off. */
@@ -34,8 +37,8 @@ export const loggingSettingsSchema = z.object({
     })
     .prefault({}),
   /** Channels whose messages and voice activity are not logged. */
-  ignoredChannelIds: z.array(snowflakeSchema).max(100).default([]),
-  /** Skip messages written by bots. */
+  ignoredChannelIds: z.array(snowflakeSchema).max(MAX_IGNORED_LOG_CHANNELS).default([]),
+  /** Skip bots' messages and voice activity. */
   ignoreBots: z.boolean().default(true),
 });
 

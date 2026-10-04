@@ -11,6 +11,7 @@ import { loadEnv } from './env';
 import { createLogger } from './logger';
 import { modules } from './modules';
 import { ModerationService } from './modules/moderation/service';
+import { DeletionMarks } from './services/deletion-marks';
 import { GuildSettingsService } from './services/settings';
 
 const env = loadEnv();
@@ -37,7 +38,16 @@ const settings = new GuildSettingsService(async (guildId) => {
 
 const moderation = new ModerationService({ client, db: database.db, logger, settings });
 
-const ctx: BotContext = { client, env, logger, db: database.db, settings, registry, moderation };
+const ctx: BotContext = {
+  client,
+  env,
+  logger,
+  db: database.db,
+  settings,
+  registry,
+  moderation,
+  deletionMarks: new DeletionMarks(),
+};
 
 registerEvents(ctx, registry.events);
 client.on(Events.InteractionCreate, (interaction) => void handleInteraction(interaction, ctx));

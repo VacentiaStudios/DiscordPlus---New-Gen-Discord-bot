@@ -2,7 +2,7 @@
 
 Türkçe konuşan, web panelinden yönetilen yeni nesil Discord moderasyon botu.
 
-> **Durum:** Geliştirme aşamasında. Web paneli, moderasyon komutları ve vaka sistemi hazır; loglama ve AutoMod ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
+> **Durum:** Geliştirme aşamasında. Web paneli, moderasyon komutları, vaka sistemi ve loglama hazır; AutoMod ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
 
 ## Neler var?
 
@@ -135,6 +135,23 @@ Süreler `30sn`, `10dk`, `2sa`, `1g`, `1hf` veya `1g12sa` biçiminde yazılır; 
 
 Komut adları Türkçe Discord istemcisinde Türkçe, diğer dillerde İngilizce görünür (ör. `/yardım` ↔ `/help`).
 
+## Loglar
+
+Panelin **Loglar** sayfasında her kategori için bir kanal seçilir. Kanal seçilmeyen kategori kapalıdır; tüm kategoriler aynı kanala da gönderilebilir.
+
+| Kategori   | Neler loglanır                                                                                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Moderasyon | Vakalar (uyarı, susturma, atma, yasaklama) ve panelden yapılan ayar değişiklikleri                                                                                     |
+| Mesaj      | Silinen mesajlar (içerik ve ekler), düzenlenen mesajlar (önce/sonra), toplu silmeler (.txt dökümüyle). `/temizle` ile silinen mesajlar etiketlenir                     |
+| Üye        | Katılma (hesap yaşı; 7 günden yeni hesaplar işaretlenir), ayrılma (roller ve sunucuda kalma süresi), takma ad, rol, kullanıcı adı, görünen ad ve avatar değişiklikleri |
+| Sunucu     | Kanal ve rol oluşturma, silme ve güncelleme (izin farklarıyla birlikte), sunucu adı ve simgesi değişiklikleri                                                          |
+| Ses        | Ses kanalına katılma, ayrılma, kanal değiştirme; sunucu tarafından susturma ve sağırlaştırma                                                                           |
+
+- Log kanallarındaki mesajlar ve botun kendi mesajları hiçbir zaman loglanmaz.
+- Yoksayılan kanallardaki mesaj ve ses etkinlikleri loglanmaz. Bir kategori yoksayılırsa içindeki tüm kanallar da yoksayılır. "Botları yoksay" açıkken botların mesajları ve ses etkinlikleri de loglanmaz.
+- Mesaj içerikleri veritabanına yazılmaz. Bot son mesajları yalnızca bellekte tutar: varsayılan olarak kanal başına 100 mesaj, en fazla 1 saat (`MESSAGE_CACHE_SIZE`, `MESSAGE_CACHE_LIFETIME_SECONDS`). Daha eski bir mesaj silinirse içeriği gösterilemez.
+- Bot seçilen kanalı göremiyor veya oraya yazamıyorsa panel uyarı gösterir. Toplu silme dökümlerinin dosya olarak eklenebilmesi için mesaj log kanalında **Dosya Ekle** yetkisi gerekir.
+
 ## Uçtan uca testler
 
 Web paneli testleri, üretim derlemesine karşı sahte bir Discord API'si ve test oturumlarıyla çalışır; gerçek Discord hesabı gerekmez. Bir PostgreSQL sunucusu gerekir.
@@ -152,6 +169,6 @@ Varsayılan veritabanı `postgres://discordplus:discordplus@localhost:5432/disco
 - [x] **Faz 0:** Monorepo, veritabanı, bot ve site iskeleti, Docker, CI
 - [x] **Faz 1:** Discord ile giriş ve sunucu listesi
 - [x] **Faz 2:** Temel moderasyon ve vaka sistemi
-- [ ] **Faz 3:** Gelişmiş loglama
+- [x] **Faz 3:** Gelişmiş loglama
 - [ ] **Faz 4:** AutoMod
 - [ ] **Sonrası:** anti-raid ve doğrulama, AI destekli moderasyon, panelde rol bazlı erişim, İngilizce dil desteği

@@ -32,4 +32,5 @@ End-to-end tests (Playwright, `apps/web/e2e`) run the standalone build against a
 - Workspace packages are consumed as TypeScript source. The bot bundle keeps npm packages external, so every npm package reachable from the bot (including through workspace packages) must be a direct dependency of `apps/bot`; `scripts/build.mjs` fails otherwise.
 - Never ping by accident: the Discord client defaults to `allowedMentions: { parse: [] }`.
 - Tests: Vitest, next to the source (`*.test.ts`). Database tests use `createTestDatabase()` from `@discordplus/db/testing` (PGlite, real migrations).
-- Claude cloud sessions cannot reach discord.com; keep logic testable without Discord.
+- Claude cloud sessions cannot reach discord.com; keep logic testable without Discord. Bot event handlers are tested end to end with `connectFakeGateway()` (`apps/bot/src/testing/fake-gateway.ts`), which feeds raw gateway packets to a real discord.js client and captures what it sends.
+- Log embeds go through `sendLogMessage()` (`apps/bot/src/services/log-channel.ts`), which checks the category's channel and the bot's access first. When the bot deletes messages on purpose (AutoMod, `/temizle`), record why with `ctx.deletionMarks.mark()` so the message log can say so.

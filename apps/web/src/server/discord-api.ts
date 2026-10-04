@@ -1,5 +1,5 @@
 import 'server-only';
-import type { UserGuild } from '@discordplus/shared';
+import type { PermissionOverwriteInfo, UserGuild } from '@discordplus/shared';
 import { z } from 'zod';
 import { getServerEnv } from './env';
 
@@ -30,6 +30,16 @@ const channelsSchema = z.array(
     name: z.string().default(''),
     position: z.number().default(0),
     parent_id: z.string().nullish(),
+    permission_overwrites: z
+      .array(
+        z.object({
+          id: z.string(),
+          type: z.union([z.literal(0), z.literal(1)]),
+          allow: z.string(),
+          deny: z.string(),
+        }),
+      )
+      .default([]),
   }),
 );
 
@@ -40,8 +50,11 @@ const rolesSchema = z.array(
     color: z.number().default(0),
     position: z.number(),
     managed: z.boolean().default(false),
+    permissions: z.string(),
   }),
 );
+
+const memberSchema = z.object({ roles: z.array(z.string()) });
 
 async function discordGet(path: string, authorization: string): Promise<unknown> {
   const response = await fetch(`${getServerEnv().DISCORD_API_BASE}${path}`, {
@@ -68,6 +81,7 @@ export interface GuildChannel {
   type: number;
   position: number;
   parentId: string | null;
+  overwrites: PermissionOverwriteInfo[];
 }
 
 /** All channels of a guild, read with the bot token. */
@@ -81,6 +95,7 @@ export async function fetchGuildChannels(guildId: string): Promise<GuildChannel[
     type: channel.type,
     position: channel.position,
     parentId: channel.parent_id ?? null,
+    overwrites: channel.permission_overwrites,
   }));
 }
 
@@ -90,9 +105,19 @@ export interface GuildRole {
   color: number;
   position: number;
   managed: boolean;
+  /** Permission bitfield as a decimal string. */
+  permissions: string;
 }
 
 /** All roles of a guild, read with the bot token. */
 export async function fetchGuildRoles(guildId: string): Promise<GuildRole[]> {
   return rolesSchema.parse(await discordGet(`/guilds/${guildId}/roles`, botAuthorization()));
+}
+
+/** Role ids of a guild member, read with the bot token. */
+export async function fetchGuildMemberRoles(guildId: string, userId: string): Promise<string[]> {
+  const data = memberSchema.parse(
+    await discordGet(`/guilds/${guildId}/members/${userId}`, botAuthorization()),
+  );
+  return data.roles;
 }

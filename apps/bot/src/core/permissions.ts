@@ -28,10 +28,41 @@ const PERMISSION_NAMES: Partial<Record<PermissionName, string>> = {
   KickMembers: 'Üyeleri At',
   BanMembers: 'Üyeleri Yasakla',
   ViewAuditLog: 'Denetim Kaydını Görüntüle',
+  CreateInstantInvite: 'Davet Oluştur',
+  ManageNicknames: 'Takma Adları Yönet',
+  ChangeNickname: 'Takma Adı Değiştir',
+  ManageGuildExpressions: 'İfadeleri Yönet',
+  ManageWebhooks: 'Webhook’ları Yönet',
+  ManageEvents: 'Etkinlikleri Yönet',
+  ManageThreads: 'Alt Başlıkları Yönet',
+  CreatePublicThreads: 'Herkese Açık Alt Başlık Oluştur',
+  CreatePrivateThreads: 'Özel Alt Başlık Oluştur',
+  AddReactions: 'Tepki Ekle',
+  MentionEveryone: '@everyone ve @here Bahset',
+  UseExternalEmojis: 'Harici Emoji Kullan',
+  UseExternalStickers: 'Harici Çıkartma Kullan',
+  UseApplicationCommands: 'Uygulama Komutlarını Kullan',
+  SendTTSMessages: 'Metin Okuma Mesajı Gönder',
+  SendVoiceMessages: 'Sesli Mesaj Gönder',
+  SendPolls: 'Anket Oluştur',
+  Connect: 'Bağlan',
+  Speak: 'Konuş',
+  Stream: 'Video',
+  MuteMembers: 'Üyeleri Sustur',
+  DeafenMembers: 'Üyeleri Sağırlaştır',
+  MoveMembers: 'Üyeleri Taşı',
+  UseVAD: 'Ses Etkinliğini Kullan',
+  PrioritySpeaker: 'Öncelikli Konuşmacı',
+  ViewGuildInsights: 'Sunucu Analizlerini Görüntüle',
 };
 
+/** Turkish label of a permission flag name such as `BanMembers`. */
+export function permissionLabel(name: string): string {
+  return PERMISSION_NAMES[name as PermissionName] ?? name;
+}
+
 export function permissionNames(names: readonly string[]): string {
-  return names.map((name) => PERMISSION_NAMES[name as PermissionName] ?? name).join(', ');
+  return names.map(permissionLabel).join(', ');
 }
 
 /** The invoking member must hold `permissions` (re-checked even though Discord gates the command). */

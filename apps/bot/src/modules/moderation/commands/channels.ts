@@ -41,7 +41,7 @@ export const purgeCommand: SlashCommand = {
       named(o, 'contains', 'içeren', commands.purge.contains).setMaxLength(100),
     )
     .toJSON(),
-  async execute(interaction) {
+  async execute(interaction, ctx) {
     const channel = interaction.channel;
     if (!channel || !('bulkDelete' in channel)) {
       throw new UserError(tr.moderation.errors.textChannelOnly);
@@ -68,6 +68,10 @@ export const purgeCommand: SlashCommand = {
       .slice(0, amount);
     if (targets.length === 0) throw new UserError(tr.moderation.errors.nothingToPurge);
 
+    ctx.deletionMarks.mark(
+      targets.map((message) => message.id),
+      tr.logging.purgedBy(interaction.user.toString()),
+    );
     const deleted = await channel.bulkDelete(targets, true);
     const message =
       deleted.size < amount

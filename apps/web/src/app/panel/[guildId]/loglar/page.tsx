@@ -1,16 +1,18 @@
 import { loadGuildSettings } from '@discordplus/db';
-import type { LogCategory } from '@discordplus/shared';
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/settings/field';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getDb } from '@/server/db';
-import { getGuildChannels, textChannelGroups } from '@/server/guild-data';
+import {
+  getBotChannelPermissions,
+  getGuildChannels,
+  ignorableChannelGroups,
+  textChannelGroups,
+} from '@/server/guild-data';
 import { requireGuildAccess } from '@/server/guilds';
 import { LoggingForm } from './logging-form';
 
 export const metadata: Metadata = { title: 'Loglar' };
-
-const CATEGORIES: readonly LogCategory[] = ['moderation'];
 
 export default async function LoggingSettingsPage({
   params,
@@ -21,17 +23,20 @@ export default async function LoggingSettingsPage({
   await requireGuildAccess(guildId);
   const { settings } = await loadGuildSettings(getDb(), guildId);
 
-  const groups = await getGuildChannels(guildId).then(textChannelGroups, () => null);
+  const channels = await getGuildChannels(guildId).catch(() => null);
+  // Without the bot's permissions the form still works, just without warnings.
+  const permissions = channels ? await getBotChannelPermissions(guildId, channels) : null;
 
   return (
     <div className="space-y-6">
       <PageHeader title="Loglar" description="Hangi olayların hangi kanala yazılacağı." />
-      {groups ? (
+      {channels ? (
         <LoggingForm
           guildId={guildId}
           initial={settings.logging}
-          groups={groups}
-          categories={CATEGORIES}
+          targetGroups={textChannelGroups(channels)}
+          ignorableGroups={ignorableChannelGroups(channels)}
+          permissions={permissions}
         />
       ) : (
         <Alert variant="destructive">

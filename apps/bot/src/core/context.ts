@@ -3,6 +3,7 @@ import type { Client } from 'discord.js';
 import type { Env } from '../env';
 import type { Logger } from '../logger';
 import type { ModerationService } from '../modules/moderation/service';
+import type { DeletionMarks } from '../services/deletion-marks';
 import type { GuildSettingsService } from '../services/settings';
 import type { CommandRegistry } from './registry';
 
@@ -15,4 +16,6 @@ export interface BotContext {
   settings: GuildSettingsService;
   registry: CommandRegistry;
   moderation: ModerationService;
+  /** Why the bot deleted recent messages, for the message log. */
+  deletionMarks: DeletionMarks;
 }

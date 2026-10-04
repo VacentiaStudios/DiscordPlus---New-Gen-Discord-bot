@@ -1,4 +1,4 @@
-import { AUTH_SECRET, BOT_TOKEN } from './fixtures.mjs';
+import { AUTH_SECRET, BOT_TOKEN, BOT_USER_ID } from './fixtures.mjs';
 
 export const WEB_PORT = 3200;
 export const DISCORD_MOCK_PORT = 4010;
@@ -8,7 +8,7 @@ export const E2E_ENV = {
   DATABASE_URL:
     process.env.E2E_DATABASE_URL ??
     'postgres://discordplus:discordplus@localhost:5432/discordplus_e2e',
-  DISCORD_CLIENT_ID: '100000000000000000',
+  DISCORD_CLIENT_ID: BOT_USER_ID,
   DISCORD_CLIENT_SECRET: 'e2e-client-secret',
   DISCORD_TOKEN: BOT_TOKEN,
   BETTER_AUTH_SECRET: AUTH_SECRET,
