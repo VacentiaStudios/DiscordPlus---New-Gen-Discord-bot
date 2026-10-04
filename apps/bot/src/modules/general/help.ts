@@ -1,13 +1,9 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { slashCommand, turkishName } from '../../core/builders';
-import type { BotContext } from '../../core/context';
 import type { SlashCommand } from '../../core/types';
 import { COLORS } from '../../core/ui';
+import { panelUrl } from '../../core/urls';
 import { tr } from '../../locales/tr';
-
-export function panelUrl(ctx: BotContext, guildId: string): string {
-  return new URL(`/panel/${guildId}`, ctx.env.WEB_URL).toString();
-}
 
 export const helpCommand: SlashCommand = {
   type: 'slash',

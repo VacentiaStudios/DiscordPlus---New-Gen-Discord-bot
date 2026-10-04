@@ -2,7 +2,7 @@
 
 Türkçe konuşan, web panelinden yönetilen yeni nesil Discord moderasyon botu.
 
-> **Durum:** Geliştirme aşamasında. Altyapı (Faz 0) hazır; özellikler fazlar hâlinde ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
+> **Durum:** Geliştirme aşamasında. Altyapı ve web paneline giriş hazır; özellikler fazlar hâlinde ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
 
 ## Neler var?
 
@@ -44,6 +44,9 @@ Panelde bir ayar kaydedildiğinde veritabanı güncellenir ve Postgres `NOTIFY` 
 3. **Bot** sekmesi:
    - **Reset Token** ile token alın → `DISCORD_TOKEN`.
    - **Privileged Gateway Intents** altında **Server Members Intent** ve **Message Content Intent** seçeneklerini açın.
+4. **OAuth2** sekmesi (web paneline giriş için):
+   - **Client Secret** → `DISCORD_CLIENT_SECRET`.
+   - **Redirects** listesine `http://localhost:3000/api/auth/callback/discord` adresini ekleyin. Üretimde `https://<alan-adınız>/api/auth/callback/discord` adresini de ekleyin.
 
 ### 2. Projeyi hazırlayın
 
@@ -52,6 +55,8 @@ corepack enable
 pnpm install
 cp .env.example .env   # ardından değerleri doldurun
 ```
+
+`BETTER_AUTH_SECRET` için rastgele bir değer üretin, örneğin `openssl rand -base64 32`.
 
 ### 3. Veritabanını başlatın
 
@@ -75,6 +80,7 @@ pnpm dev
 ```
 
 - Web sitesi: <http://localhost:3000>
+- Panel: <http://localhost:3000/panel>. Discord ile giriş yapın; sahibi olduğunuz veya Yönetici ya da Sunucuyu Yönet yetkiniz olan sunucular listelenir.
 - Botu sunucunuza eklemek için: <http://localhost:3000/davet>
 
 ## Docker ile çalıştırma
@@ -102,23 +108,37 @@ docker compose --profile production up -d --build
 | `pnpm format`          | Prettier ile biçimlendirir                                |
 | `pnpm typecheck`       | TypeScript tip kontrolü                                   |
 | `pnpm test`            | Testler (veritabanı testleri bellekte çalışan PGlite ile) |
+| `pnpm e2e`             | Web paneli uçtan uca testleri (Playwright)                |
 | `pnpm db:generate`     | Şema değişikliğinden migration üretir                     |
 | `pnpm db:migrate`      | Migration'ları uygular                                    |
 | `pnpm deploy-commands` | Slash komutlarını Discord'a kaydeder                      |
 
 ## Bot komutları
 
-| Komut     | Açıklama                                       |
-| --------- | ---------------------------------------------- |
-| `/ping`   | Botun gecikmesini gösterir                     |
-| `/yardım` | Komut listesini ve panel bağlantısını gösterir |
+| Komut     | Açıklama                                                          |
+| --------- | ----------------------------------------------------------------- |
+| `/ping`   | Botun gecikmesini gösterir                                        |
+| `/yardım` | Komut listesini ve panel bağlantısını gösterir                    |
+| `/panel`  | Sunucunun panel sayfasına bağlantı verir (Sunucuyu Yönet yetkisi) |
 
 Komut adları Türkçe Discord istemcisinde Türkçe, diğer dillerde İngilizce görünür (ör. `/yardım` ↔ `/help`).
+
+## Uçtan uca testler
+
+Web paneli testleri, üretim derlemesine karşı sahte bir Discord API'si ve test oturumlarıyla çalışır; gerçek Discord hesabı gerekmez. Bir PostgreSQL sunucusu gerekir.
+
+```bash
+pnpm --filter @discordplus/web exec playwright install chromium   # ilk seferde
+pnpm build
+pnpm e2e
+```
+
+Varsayılan veritabanı `postgres://discordplus:discordplus@localhost:5432/discordplus_e2e`; farklıysa `E2E_DATABASE_URL` ile belirtin. Veritabanı yoksa otomatik oluşturulur.
 
 ## Yol haritası
 
 - [x] **Faz 0:** Monorepo, veritabanı, bot ve site iskeleti, Docker, CI
-- [ ] **Faz 1:** Discord ile giriş ve sunucu listesi
+- [x] **Faz 1:** Discord ile giriş ve sunucu listesi
 - [ ] **Faz 2:** Temel moderasyon ve vaka sistemi
 - [ ] **Faz 3:** Gelişmiş loglama
 - [ ] **Faz 4:** AutoMod

@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "pnpm --filter @discordplus/web e2e",
     "db:generate": "pnpm --filter @discordplus/db generate",
     "db:migrate": "pnpm --filter @discordplus/db migrate",
     "deploy-commands": "pnpm --filter @discordplus/bot deploy-commands"

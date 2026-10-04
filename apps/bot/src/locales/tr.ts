@@ -27,6 +27,12 @@ export const tr = {
     helpPanel: (url: string) => `Botun tüm ayarları web panelinden yapılır: [Paneli aç](${url})`,
     helpFooter: 'Komut adları Türkçe Discord istemcisinde Türkçe görünür.',
   },
+  panel: {
+    description: 'Bu sunucunun web paneli bağlantısını gösterir.',
+    message:
+      'Botun tüm ayarlarını web panelinden yapabilirsiniz. Panele Discord hesabınızla giriş yapın; Sunucuyu Yönet yetkisine sahip olmanız gerekir.',
+    button: 'Paneli aç',
+  },
 } as const;
 
 export function format(template: string, values: Record<string, string | number>): string {

@@ -31,6 +31,26 @@ export function hasPermission(bitfield: bigint | string, permission: bigint): bo
   return (bits & permission) === permission;
 }
 
+/** A guild as returned by Discord's `GET /users/@me/guilds` for the signed-in user. */
+export interface UserGuild {
+  id: string;
+  name: string;
+  icon: string | null;
+  owner: boolean;
+  /** The user's permission bitfield in the guild, as a decimal string. */
+  permissions: string;
+}
+
+/** Owners, administrators and members with Manage Server may configure the bot. */
+export function canManageGuild(guild: Pick<UserGuild, 'owner' | 'permissions'>): boolean {
+  return guild.owner || hasPermission(guild.permissions, PermissionFlagsBits.ManageGuild);
+}
+
+/** Guilds the user may manage in the panel, sorted by name. */
+export function manageableGuilds<T extends UserGuild>(guilds: readonly T[]): T[] {
+  return guilds.filter(canManageGuild).sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+}
+
 export function botInviteUrl(clientId: string, guildId?: string): string {
   const params = new URLSearchParams({
     client_id: clientId,
