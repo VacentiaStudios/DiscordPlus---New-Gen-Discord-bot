@@ -4,6 +4,7 @@ import { loggingSettingsSchema } from './logging';
 import { moderationSettingsSchema } from './moderation';
 
 export * from './automod';
+export * from './diff';
 export * from './logging';
 export * from './moderation';
 

@@ -1,6 +1,6 @@
 // Minimal stand-in for the Discord REST API used by the panel in end-to-end tests.
 import { createServer } from 'node:http';
-import { guildsByAccessToken } from './fixtures.mjs';
+import { BOT_TOKEN, channelsByGuild, guildsByAccessToken, rolesByGuild } from './fixtures.mjs';
 
 const port = Number(process.env.DISCORD_MOCK_PORT ?? 4010);
 
@@ -29,6 +29,17 @@ createServer((request, response) => {
         permissions,
       })),
     );
+  }
+
+  const guildRoute = url.pathname.match(/^\/api\/v10\/guilds\/(\d+)\/(channels|roles)$/);
+  if (request.method === 'GET' && guildRoute) {
+    if (authorization !== `Bot ${BOT_TOKEN}`) {
+      return send(response, 401, { message: '401: Unauthorized', code: 0 });
+    }
+    const [, guildId, resource] = guildRoute;
+    const data = (resource === 'channels' ? channelsByGuild : rolesByGuild)[guildId];
+    if (!data) return send(response, 404, { message: 'Unknown Guild', code: 10004 });
+    return send(response, 200, data);
   }
 
   send(response, 404, { message: 'Unknown route', code: 0 });

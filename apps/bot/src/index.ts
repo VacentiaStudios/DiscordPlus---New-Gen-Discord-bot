@@ -10,6 +10,7 @@ import { handleInteraction } from './core/router';
 import { loadEnv } from './env';
 import { createLogger } from './logger';
 import { modules } from './modules';
+import { ModerationService } from './modules/moderation/service';
 import { GuildSettingsService } from './services/settings';
 
 const env = loadEnv();
@@ -34,7 +35,9 @@ const settings = new GuildSettingsService(async (guildId) => {
   return loaded;
 });
 
-const ctx: BotContext = { client, env, logger, db: database.db, settings, registry };
+const moderation = new ModerationService({ client, db: database.db, logger, settings });
+
+const ctx: BotContext = { client, env, logger, db: database.db, settings, registry, moderation };
 
 registerEvents(ctx, registry.events);
 client.on(Events.InteractionCreate, (interaction) => void handleInteraction(interaction, ctx));

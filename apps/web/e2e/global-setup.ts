@@ -1,8 +1,8 @@
-import { createDatabase, schema, upsertGuildPresence } from '@discordplus/db';
+import { createCase, createDatabase, schema, upsertGuildPresence } from '@discordplus/db';
 import { runMigrations } from '@discordplus/db/migrator';
 import { ensureDatabase } from '@discordplus/db/testing';
 import { E2E_ENV } from './env';
-import { guilds, users } from './fixtures.mjs';
+import { guilds, seededCases, users } from './fixtures.mjs';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -14,6 +14,9 @@ export default async function globalSetup() {
   const database = createDatabase(E2E_ENV.DATABASE_URL, { maxConnections: 1 });
   const { db } = database;
   try {
+    await db.delete(schema.settingsAudit);
+    await db.delete(schema.channelLocks);
+    await db.delete(schema.modCases);
     await db.delete(schema.session);
     await db.delete(schema.account);
     await db.delete(schema.verification);
@@ -26,6 +29,22 @@ export default async function globalSetup() {
         .filter((guild) => guild.botPresent)
         .map(({ id, name, icon }) => ({ id, name, icon })),
     );
+
+    for (const seeded of seededCases) {
+      await createCase(db, {
+        guildId: guilds.owned.id,
+        guildName: guilds.owned.name,
+        type: seeded.type as 'warn' | 'timeout' | 'ban',
+        source: 'command',
+        targetId: seeded.targetId,
+        targetTag: seeded.targetTag,
+        moderatorId: users.alice.discordId,
+        moderatorTag: users.alice.name,
+        reason: seeded.reason,
+        durationMs: seeded.durationMs ?? null,
+        expiresAt: seeded.durationMs ? new Date(Date.now() + seeded.durationMs) : null,
+      });
+    }
 
     const expiresAt = new Date(Date.now() + DAY);
     for (const user of Object.values(users)) {

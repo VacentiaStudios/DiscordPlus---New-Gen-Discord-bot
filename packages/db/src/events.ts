@@ -17,6 +17,12 @@ export const dbEventSchema = z.discriminatedUnion('type', [
     actorId: z.string(),
     actorName: z.string(),
   }),
+  // A case was edited or deleted in the panel; the bot refreshes its mod-log message.
+  z.object({
+    type: z.literal('case_updated'),
+    guildId: snowflakeSchema,
+    caseId: z.number().int().positive(),
+  }),
 ]);
 
 export type DbEvent = z.infer<typeof dbEventSchema>;

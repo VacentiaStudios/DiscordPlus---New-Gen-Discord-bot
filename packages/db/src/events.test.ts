@@ -48,7 +48,7 @@ describe('notifyEvent', () => {
     await notifyEvent(testDb.db, { ...event, section: 'automod' });
 
     await expect.poll(() => received.length).toBe(1);
-    expect(parseDbEvent(received[0])?.section).toBe('automod');
+    expect(parseDbEvent(received[0])).toMatchObject({ section: 'automod' });
     await unsubscribe();
   });
 });

@@ -72,3 +72,62 @@ export const guildsByAccessToken = {
   [users.bob.accessToken]: [guilds.member],
   [users.carol.accessToken]: [guilds.owned],
 };
+
+const TEXT = 0;
+const VOICE = 2;
+const CATEGORY = 4;
+
+/** What `GET /guilds/:id/channels` returns (bot token). */
+export const channelsByGuild = {
+  [guilds.owned.id]: [
+    { id: '400000000000000001', type: CATEGORY, name: 'Genel', position: 0, parent_id: null },
+    {
+      id: '400000000000000002',
+      type: TEXT,
+      name: 'sohbet',
+      position: 0,
+      parent_id: '400000000000000001',
+    },
+    {
+      id: '400000000000000003',
+      type: TEXT,
+      name: 'mod-log',
+      position: 1,
+      parent_id: '400000000000000001',
+    },
+    {
+      id: '400000000000000004',
+      type: VOICE,
+      name: 'Sesli Sohbet',
+      position: 2,
+      parent_id: '400000000000000001',
+    },
+    { id: '400000000000000005', type: TEXT, name: 'kurallar', position: 0, parent_id: null },
+  ],
+  [guilds.manager.id]: [
+    { id: '400000000000000011', type: TEXT, name: 'genel', position: 0, parent_id: null },
+  ],
+};
+
+export const rolesByGuild = {
+  [guilds.owned.id]: [
+    { id: guilds.owned.id, name: '@everyone', color: 0, position: 0, managed: false },
+    { id: '600000000000000001', name: 'Moderatör', color: 3447003, position: 2, managed: false },
+    { id: '600000000000000002', name: 'Üye', color: 0, position: 1, managed: false },
+  ],
+};
+
+export const BOT_TOKEN = 'e2e-bot-token';
+
+/** Cases seeded into the owned guild. */
+export const seededCases = [
+  { type: 'warn', targetId: '500000000000000001', targetTag: 'spammer', reason: 'Spam' },
+  {
+    type: 'timeout',
+    targetId: '500000000000000001',
+    targetTag: 'spammer',
+    reason: 'Tekrar spam',
+    durationMs: 3_600_000,
+  },
+  { type: 'ban', targetId: '500000000000000002', targetTag: 'raider', reason: 'Baskın' },
+];

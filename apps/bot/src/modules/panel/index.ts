@@ -1,19 +1,49 @@
-import { startDbEventListener, type DbEvent, type DbEventListener } from '@discordplus/db';
+import {
+  getCaseById,
+  startDbEventListener,
+  type DbEvent,
+  type DbEventListener,
+} from '@discordplus/db';
+import { SETTINGS_SECTION_LABELS } from '@discordplus/shared';
+import { EmbedBuilder, escapeMarkdown } from 'discord.js';
 import type { BotContext } from '../../core/context';
 import type { BotModule } from '../../core/types';
+import { COLORS } from '../../core/ui';
+import { tr } from '../../locales/tr';
+import { sendLogMessage } from '../../services/log-channel';
 import { panelCommand } from './command';
 
 let listener: DbEventListener | null = null;
 
-function handleEvent(ctx: BotContext, event: DbEvent): void {
+async function handleEvent(ctx: BotContext, event: DbEvent): Promise<void> {
+  const guild = ctx.client.guilds.cache.get(event.guildId);
   switch (event.type) {
-    case 'settings_updated':
+    case 'settings_updated': {
       ctx.settings.invalidate(event.guildId);
-      ctx.logger.debug(
-        { guildId: event.guildId, section: event.section },
-        'Settings changed in panel',
-      );
-      break;
+      if (!guild) return;
+      // Reads the fresh settings, so a newly chosen mod-log channel gets the note.
+      await sendLogMessage(ctx, guild, 'moderation', {
+        embeds: [
+          new EmbedBuilder()
+            .setColor(COLORS.neutral)
+            .setDescription(
+              tr.panel.settingsChanged(
+                SETTINGS_SECTION_LABELS[event.section],
+                event.actorId,
+                escapeMarkdown(event.actorName),
+              ),
+            )
+            .setTimestamp(),
+        ],
+      });
+      return;
+    }
+    case 'case_updated': {
+      if (!guild) return;
+      const row = await getCaseById(ctx.db, event.caseId);
+      if (row && row.guildId === guild.id) await ctx.moderation.refreshLogMessage(guild, row);
+      return;
+    }
   }
 }
 
@@ -24,7 +54,11 @@ export const panelModule: BotModule = {
   start(ctx) {
     listener = startDbEventListener({
       connectionString: ctx.env.DATABASE_URL,
-      onEvent: (event) => handleEvent(ctx, event),
+      onEvent: (event) => {
+        handleEvent(ctx, event).catch((error: unknown) =>
+          ctx.logger.error({ err: error, event }, 'Panel event handling failed'),
+        );
+      },
       onConnect: () => {
         // Anything could have changed while we were not listening.
         ctx.settings.clear();

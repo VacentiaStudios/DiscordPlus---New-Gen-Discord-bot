@@ -2,7 +2,7 @@
 
 Türkçe konuşan, web panelinden yönetilen yeni nesil Discord moderasyon botu.
 
-> **Durum:** Geliştirme aşamasında. Altyapı ve web paneline giriş hazır; özellikler fazlar hâlinde ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
+> **Durum:** Geliştirme aşamasında. Web paneli, moderasyon komutları ve vaka sistemi hazır; loglama ve AutoMod ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
 
 ## Neler var?
 
@@ -115,11 +115,23 @@ docker compose --profile production up -d --build
 
 ## Bot komutları
 
-| Komut     | Açıklama                                                          |
-| --------- | ----------------------------------------------------------------- |
-| `/ping`   | Botun gecikmesini gösterir                                        |
-| `/yardım` | Komut listesini ve panel bağlantısını gösterir                    |
-| `/panel`  | Sunucunun panel sayfasına bağlantı verir (Sunucuyu Yönet yetkisi) |
+| Komut (Türkçe / İngilizce)                           | Açıklama                                                                | Gerekli yetki              |
+| ---------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------- |
+| `/yasakla` · `/ban`                                  | Süreli veya kalıcı yasak; isteğe bağlı olarak son mesajları siler       | Üyeleri Yasakla            |
+| `/yasak-kaldır` · `/unban`                           | Yasağı kaldırır                                                         | Üyeleri Yasakla            |
+| `/at` · `/kick`                                      | Üyeyi atar                                                              | Üyeleri At                 |
+| `/sustur` · `/timeout`                               | Üyeyi en fazla 28 gün susturur                                          | Üyelere Zaman Aşımı Uygula |
+| `/susturma-kaldır` · `/untimeout`                    | Susturmayı kaldırır                                                     | Üyelere Zaman Aşımı Uygula |
+| `/uyar` · `/warn`                                    | Uyarı verir; uyarı eşiğine ulaşılırsa ceza otomatik uygulanır           | Üyelere Zaman Aşımı Uygula |
+| `/temizle` · `/purge`                                | 1–100 mesajı siler; kullanıcıya veya içeriğe göre filtrelenebilir       | Mesajları Yönet            |
+| `/yavaş-mod` · `/slowmode`                           | Kanalın yavaş modunu ayarlar                                            | Kanalları Yönet            |
+| `/kilitle` · `/lock`, `/kilit-aç` · `/unlock`        | Kanalı herkese kapatır; açarken önceki izinleri geri yükler             | Kanalları Yönet            |
+| `/vaka göster / sebep / sil` · `/case`               | Vakayı gösterir, sebebini değiştirir veya siler (silme: Sunucuyu Yönet) | Üyelere Zaman Aşımı Uygula |
+| `/geçmiş` · `/history`, sağ tık → Moderasyon Geçmişi | Kullanıcının vakalarını sayfalı gösterir                                | Üyelere Zaman Aşımı Uygula |
+| `/panel`                                             | Sunucunun panel sayfasına bağlantı verir                                | Sunucuyu Yönet             |
+| `/ping`, `/yardım` · `/help`                         | Gecikme ve komut listesi                                                | —                          |
+
+Süreler `30sn`, `10dk`, `2sa`, `1g`, `1hf` veya `1g12sa` biçiminde yazılır; komutlar yazarken öneri sunar. Discord arayüzünden elle yapılan yasaklama, atma ve susturmalar da denetim kaydından okunarak vaka olarak kaydedilir.
 
 Komut adları Türkçe Discord istemcisinde Türkçe, diğer dillerde İngilizce görünür (ör. `/yardım` ↔ `/help`).
 
@@ -139,7 +151,7 @@ Varsayılan veritabanı `postgres://discordplus:discordplus@localhost:5432/disco
 
 - [x] **Faz 0:** Monorepo, veritabanı, bot ve site iskeleti, Docker, CI
 - [x] **Faz 1:** Discord ile giriş ve sunucu listesi
-- [ ] **Faz 2:** Temel moderasyon ve vaka sistemi
+- [x] **Faz 2:** Temel moderasyon ve vaka sistemi
 - [ ] **Faz 3:** Gelişmiş loglama
 - [ ] **Faz 4:** AutoMod
 - [ ] **Sonrası:** anti-raid ve doğrulama, AI destekli moderasyon, panelde rol bazlı erişim, İngilizce dil desteği
