@@ -24,7 +24,9 @@ function isInviteUrl(url: URL): boolean {
 /** Host names of the links in a message, invites excluded (they have their own filter). */
 export function findLinkHosts(content: string): string[] {
   const hosts = new Set<string>();
-  for (const [raw] of stripInvisible(content).matchAll(URL_PATTERN)) {
+  for (const [match] of stripInvisible(content).matchAll(URL_PATTERN)) {
+    // Sentence punctuation right after a link is not part of it.
+    const raw = match.replace(/[.,;:!?]+$/u, '');
     let url: URL;
     try {
       url = new URL(raw);

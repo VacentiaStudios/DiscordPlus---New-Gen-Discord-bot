@@ -28,6 +28,10 @@ describe('findLinkHosts', () => {
       ),
     ).toEqual(['www.youtube.com', 'site.example', 'cdn.discordapp.com']);
     expect(findLinkHosts('düz metin site.com')).toEqual([]);
+    expect(findLinkHosts('bak https://youtube.com, çok iyi! https://tenor.com.')).toEqual([
+      'youtube.com',
+      'tenor.com',
+    ]);
   });
 });
 
