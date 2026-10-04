@@ -16,6 +16,8 @@ import {
   type RoleFlags,
 } from 'discord.js';
 import { vi } from 'vitest';
+import type { BotContext } from '../core/context';
+import type { AnyEventHandler } from '../core/types';
 
 interface PacketSink {
   status: Status;
@@ -153,12 +155,20 @@ export function rawGuild(options: RawGuildOptions) {
   };
 }
 
+export interface RestCall {
+  method: string;
+  route: string;
+  body?: unknown;
+}
+
 export interface FakeGateway {
   dispatch(type: string, data: unknown): void;
   /** Replaces `send` on a channel and records what was sent to it. */
   captureSends(
     channelId: string,
   ): ReturnType<typeof vi.fn<(options: MessageCreateOptions) => Promise<unknown>>>;
+  /** Answers every REST request with an empty success and records it. */
+  captureRest(): RestCall[];
 }
 
 /**
@@ -179,9 +189,45 @@ export function connectFakeGateway(client: Client, botUser: APIUser): FakeGatewa
     captureSends(channelId) {
       const channel = client.channels.cache.get(channelId) as GuildTextBasedChannel | undefined;
       if (!channel) throw new Error(`Unknown channel ${channelId}`);
-      const send = vi.fn((_options: MessageCreateOptions) => Promise.resolve({ id: 'sent' }));
+      const send = vi.fn((_options: MessageCreateOptions) =>
+        Promise.resolve({ id: 'sent', channelId, delete: () => Promise.resolve() }),
+      );
       Object.assign(channel, { send });
       return send;
+    },
+    captureRest() {
+      const calls: RestCall[] = [];
+      const request = vi.fn((options: { method: string; fullRoute: string; body?: unknown }) => {
+        calls.push({ method: options.method, route: options.fullRoute, body: options.body });
+        return Promise.resolve(undefined);
+      });
+      Object.assign(client.rest, { request });
+      return calls;
+    },
+  };
+}
+
+/**
+ * Subscribes module event handlers to the client; `settled()` waits until every
+ * handler started so far has finished.
+ */
+export function runHandlers(
+  client: Client,
+  ctx: BotContext,
+  handlers: readonly AnyEventHandler[],
+): { settled(): Promise<void> } {
+  const pending: Promise<unknown>[] = [];
+  for (const handler of handlers) {
+    const untyped = handler as unknown as {
+      handle(ctx: BotContext, ...args: unknown[]): Promise<void> | void;
+    };
+    client.on(handler.event, (...args: unknown[]) => {
+      pending.push(Promise.resolve(untyped.handle(ctx, ...args)));
+    });
+  }
+  return {
+    async settled() {
+      while (pending.length > 0) await Promise.all(pending.splice(0));
     },
   };
 }

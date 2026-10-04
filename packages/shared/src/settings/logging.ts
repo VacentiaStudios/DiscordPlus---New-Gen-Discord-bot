@@ -13,7 +13,8 @@ export const LOG_CATEGORY_LABELS: Record<LogCategory, string> = {
 };
 
 export const LOG_CATEGORY_DESCRIPTIONS: Record<LogCategory, string> = {
-  moderation: 'Vakalar: uyarı, susturma, atma, yasaklama ve panelden yapılan ayar değişiklikleri.',
+  moderation:
+    'Vakalar (uyarı, susturma, atma, yasaklama), AutoMod müdahaleleri ve panelden yapılan ayar değişiklikleri.',
   message: 'Silinen, düzenlenen ve toplu silinen mesajlar.',
   member: 'Katılma, ayrılma, takma ad, rol, kullanıcı adı ve avatar değişiklikleri.',
   server: 'Kanal, rol ve sunucu ayarlarındaki değişiklikler.',

@@ -1,11 +1,12 @@
 import { Events, type Guild } from 'discord.js';
 import type { LoggingSettings } from '@discordplus/shared';
+import { channelLineage } from '../../../core/channels';
 import { defineEvent } from '../../../core/types';
 import { sendLogMessage } from '../../../services/log-channel';
 import { voiceEvents, type VoiceEvent } from '../diff';
 import { voiceEmbed } from '../embeds';
 import { isIgnoredChannel } from '../filters';
-import { channelLineage, userRef } from '../snapshots';
+import { userRef } from '../snapshots';
 
 function isIgnored(logging: LoggingSettings, guild: Guild, event: VoiceEvent): boolean {
   const ignored = (channelId: string) =>

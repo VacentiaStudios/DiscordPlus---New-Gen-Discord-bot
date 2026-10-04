@@ -15,6 +15,15 @@ export function toIssueMap(issues: readonly SettingsIssue[]): IssueMap {
   return map;
 }
 
+/** Brings the first field marked invalid into view once the errors have rendered. */
+function revealFirstInvalid(): void {
+  requestAnimationFrame(() => {
+    const field = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+    field?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    field?.focus({ preventScroll: true });
+  });
+}
+
 /**
  * Validates a settings section with the shared schema in the browser, then saves
  * it through the server action (which validates again) and refreshes the page.
@@ -39,6 +48,7 @@ export function useSaveSettings<S extends SettingsSection>(guildId: string, sect
     if (Object.keys(clientIssues).length > 0) {
       setIssues(clientIssues);
       toast.error('Kaydedilemedi: işaretli alanları düzeltin.');
+      revealFirstInvalid();
       return;
     }
     setIssues({});
@@ -50,6 +60,7 @@ export function useSaveSettings<S extends SettingsSection>(guildId: string, sect
       } else {
         setIssues(toIssueMap(result.issues ?? []));
         toast.error(result.error);
+        if (result.issues?.length) revealFirstInvalid();
       }
     });
   }

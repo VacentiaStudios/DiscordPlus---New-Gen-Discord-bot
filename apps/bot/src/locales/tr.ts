@@ -290,6 +290,37 @@ export const tr = {
     },
     channelTypeOther: 'Diğer',
   },
+  automod: {
+    reason: (filter: string) => `AutoMod · ${filter}`,
+    title: (filter: string) => `🛡️ AutoMod · ${filter}`,
+    notice: (user: string, filter: string) =>
+      `${user}, mesajın AutoMod tarafından kaldırıldı: **${filter}**.`,
+    channel: 'Kanal',
+    action: 'Eylem',
+    match: 'Eşleşen',
+    message: 'Mesaj',
+    edited: 'Düzenlenen mesaj',
+    outcome: {
+      logged: 'Yalnızca loglandı',
+      deleted: (count: number) => (count > 1 ? `${count} mesaj silindi` : 'Mesaj silindi'),
+      notDeleted: 'Mesaj silinemedi: botun bu kanalda Mesajları Yönet yetkisi yok.',
+      punishFailed: (punishment: string) =>
+        `${punishment} uygulanamadı: botun yetkisi veya rol sırası yetmiyor ya da kullanıcı sunucuda değil.`,
+    },
+    punishments: {
+      warn: 'Uyarı',
+      timeout: 'Susturma',
+      kick: 'Atma',
+      ban: 'Yasaklama',
+    },
+    details: {
+      spam: (count: number, seconds: number) => `${seconds} sn içinde ${count} mesaj`,
+      duplicates: (count: number, seconds: number) =>
+        `${seconds} sn içinde ${count} kez aynı mesaj`,
+      caps: (percent: number) => `%${percent} büyük harf`,
+      mentions: (count: number) => `${count} farklı etiket`,
+    },
+  },
 } as const;
 
 export function format(template: string, values: Record<string, string | number>): string {

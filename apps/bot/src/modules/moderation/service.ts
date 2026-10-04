@@ -17,6 +17,7 @@ import {
 } from '@discordplus/shared';
 import {
   RESTJSONErrorCodes,
+  type APIEmbedField,
   type Client,
   type Guild,
   type GuildMember,
@@ -48,6 +49,11 @@ export interface ActionInput {
   reason?: string | null;
   source: CaseSource;
   metadata?: Record<string, unknown>;
+  /**
+   * Extra fields for the case's first mod-log message only; not stored (e.g. the
+   * text of a message AutoMod removed).
+   */
+  logFields?: APIEmbedField[];
 }
 
 export interface ActionResult {
@@ -305,7 +311,7 @@ export class ModerationService {
     });
 
     const message = await sendLogMessage(this.deps, input.guild, 'moderation', {
-      embeds: [caseEmbed(row)],
+      embeds: [caseEmbed(row).addFields(input.logFields ?? [])],
     });
     if (!message) return row;
     await setCaseLogMessage(this.deps.db, row.id, message.channelId, message.id);

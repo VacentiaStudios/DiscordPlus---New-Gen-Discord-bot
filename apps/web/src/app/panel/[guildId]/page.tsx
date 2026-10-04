@@ -1,8 +1,10 @@
 import { caseCountsByType, getGuild, listCases, listSettingsAudit } from '@discordplus/db';
 import {
+  AUTOMOD_FILTERS,
   CASE_TYPE_LABELS,
   CASE_TYPES,
   isSettingsSection,
+  parseSection,
   SETTINGS_SECTION_LABELS,
   type CaseType,
 } from '@discordplus/shared';
@@ -32,28 +34,24 @@ const sections = [
     icon: Gavel,
     title: 'Moderasyon',
     description: 'DM bildirimi, uyarı süresi ve eşikleri.',
-    available: true,
   },
   {
     href: '/loglar',
     icon: ScrollText,
     title: 'Loglar',
     description: 'Her log kategorisi için kanal seçimi.',
-    available: true,
   },
   {
     href: '/automod',
     icon: ShieldCheck,
     title: 'AutoMod',
     description: 'Spam, küfür, davet ve link filtreleri.',
-    available: false,
   },
   {
     href: '/vakalar',
     icon: FileText,
     title: 'Vakalar',
     description: 'Tüm moderasyon işlemlerinin kaydı.',
-    available: true,
   },
 ];
 
@@ -97,6 +95,8 @@ export default async function GuildOverviewPage({
     listCases(db, { guildId }, { limit: 5 }),
     listSettingsAudit(db, guildId, 5),
   ]);
+  const automod = parseSection('automod', row?.automod).value;
+  const automodFilters = AUTOMOD_FILTERS.filter((filter) => automod[filter].enabled).length;
 
   return (
     <div className="space-y-8">
@@ -189,38 +189,27 @@ export default async function GuildOverviewPage({
       <section>
         <h2 className="text-lg font-semibold">Ayarlar</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {sections.map(({ href, icon: Icon, title, description, available }) => {
-            const body = (
-              <>
+          {sections.map(({ href, icon: Icon, title, description }) => (
+            <Link key={title} href={`/panel/${guildId}${href}`}>
+              <Card className="flex-row items-center gap-4 px-5 py-5 transition-colors hover:bg-accent/40">
                 <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
                   <Icon className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="flex items-center gap-2 font-medium">
                     {title}
-                    {available ? null : (
-                      <Badge variant="outline" className="text-[10px] uppercase">
-                        Yakında
+                    {href === '/automod' ? (
+                      <Badge variant={automodFilters > 0 ? 'success' : 'outline'}>
+                        {automodFilters > 0 ? `${automodFilters} filtre açık` : 'Kapalı'}
                       </Badge>
-                    )}
+                    ) : null}
                   </p>
                   <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
-                {available ? <ChevronRight className="size-4 text-muted-foreground" /> : null}
-              </>
-            );
-            return available ? (
-              <Link key={title} href={`/panel/${guildId}${href}`}>
-                <Card className="flex-row items-center gap-4 px-5 py-5 transition-colors hover:bg-accent/40">
-                  {body}
-                </Card>
-              </Link>
-            ) : (
-              <Card key={title} className="flex-row items-center gap-4 px-5 py-5 opacity-70">
-                {body}
+                <ChevronRight className="size-4 text-muted-foreground" />
               </Card>
-            );
-          })}
+            </Link>
+          ))}
         </div>
       </section>
     </div>

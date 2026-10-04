@@ -9,7 +9,7 @@ import {
 } from '@discordplus/shared';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '../db';
-import { getGuildChannels, textChannelIds } from '../guild-data';
+import { getGuildChannels, getGuildRoles, textChannelIds } from '../guild-data';
 import { requireGuildAccess } from '../guilds';
 
 export interface SettingsIssue {
@@ -20,26 +20,48 @@ export interface SettingsIssue {
 export type SaveSettingsResult =
   { ok: true; changed: boolean } | { ok: false; error: string; issues?: SettingsIssue[] };
 
+const DISCORD_UNAVAILABLE =
+  'Sunucunun kanal ve rol listesi Discord’dan alınamadı. Lütfen tekrar deneyin.';
+
 /** Channel and role ids must belong to the guild being configured. */
 async function checkReferences<S extends SettingsSection>(
   guildId: string,
   section: S,
   value: SectionSettings<S>,
 ): Promise<string | null> {
-  if (section !== 'logging') return null;
-  const logging = value as SectionSettings<'logging'>;
-  let channels;
-  try {
-    channels = await getGuildChannels(guildId);
-  } catch {
-    return 'Sunucunun kanal listesi Discord’dan alınamadı. Lütfen tekrar deneyin.';
+  if (section === 'logging') {
+    const logging = value as SectionSettings<'logging'>;
+    let channels;
+    try {
+      channels = await getGuildChannels(guildId);
+    } catch {
+      return DISCORD_UNAVAILABLE;
+    }
+    const textIds = textChannelIds(channels);
+    const allIds = new Set(channels.map((c) => c.id));
+    const targets = Object.values(logging.channels).filter((id): id is string => id !== null);
+    if (targets.some((id) => !textIds.has(id))) return 'Seçilen log kanalı bu sunucuda bulunamadı.';
+    if (logging.ignoredChannelIds.some((id) => !allIds.has(id))) {
+      return 'Yoksayılan kanallardan biri bu sunucuda bulunamadı.';
+    }
   }
-  const textIds = textChannelIds(channels);
-  const allIds = new Set(channels.map((c) => c.id));
-  const targets = Object.values(logging.channels).filter((id): id is string => id !== null);
-  if (targets.some((id) => !textIds.has(id))) return 'Seçilen log kanalı bu sunucuda bulunamadı.';
-  if (logging.ignoredChannelIds.some((id) => !allIds.has(id))) {
-    return 'Yoksayılan kanallardan biri bu sunucuda bulunamadı.';
+  if (section === 'automod') {
+    const automod = value as SectionSettings<'automod'>;
+    if (automod.exemptRoleIds.length === 0 && automod.exemptChannelIds.length === 0) return null;
+    let channels, roles;
+    try {
+      [channels, roles] = await Promise.all([getGuildChannels(guildId), getGuildRoles(guildId)]);
+    } catch {
+      return DISCORD_UNAVAILABLE;
+    }
+    const roleIds = new Set(roles.map((r) => r.id));
+    if (automod.exemptRoleIds.some((id) => id === guildId || !roleIds.has(id))) {
+      return 'Muaf rollerden biri bu sunucuda bulunamadı.';
+    }
+    const channelIds = new Set(channels.map((c) => c.id));
+    if (automod.exemptChannelIds.some((id) => !channelIds.has(id))) {
+      return 'Muaf kanallardan biri bu sunucuda bulunamadı.';
+    }
   }
   return null;
 }

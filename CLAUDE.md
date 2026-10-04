@@ -17,6 +17,7 @@ End-to-end tests (Playwright, `apps/web/e2e`) run the standalone build against a
 ## Layout
 
 - `apps/bot` — discord.js bot. Features are modules in `src/modules/*` (commands, components, events, start/stop) listed in `src/modules/index.ts`.
+  AutoMod (`src/modules/automod`) keeps detectors and the Turkish text normaliser pure and unit-tested; the engine holds per-user rate state in memory and acts through `ModerationService`.
 - `apps/web` — Next.js (App Router) site and panel. shadcn/ui components in `src/components/ui`.
 - `packages/db` — Drizzle schema, migrations, shared queries, Postgres NOTIFY/LISTEN helpers, PGlite test database.
 - `packages/shared` — zod settings schemas, durations, Discord permission helpers.

@@ -6,12 +6,14 @@ import {
   type Message,
   type PartialMessage,
 } from 'discord.js';
+import { channelLineage } from '../../../core/channels';
 import type { BotContext } from '../../../core/context';
+import { isContentEdit } from '../../../core/messages';
 import { defineEvent } from '../../../core/types';
 import { sendLogMessage } from '../../../services/log-channel';
 import { bulkDeletedEmbed, messageDeletedEmbed, messageEditedEmbed, transcript } from '../embeds';
-import { isContentEdit, isIgnoredChannel } from '../filters';
-import { channelLineage, messageSnapshot } from '../snapshots';
+import { isIgnoredChannel } from '../filters';
+import { messageSnapshot } from '../snapshots';
 
 /** Logging settings when activity of `message` belongs in the message log, else null. */
 async function messageLogSettings(

@@ -2,7 +2,6 @@
 import {
   ChannelType,
   OverwriteType,
-  type Guild,
   type GuildMember,
   type Message,
   type NonThreadGuildBasedChannel,
@@ -29,13 +28,6 @@ export function messageSnapshot(message: Message | PartialMessage): MessageSnaps
     createdAt: message.createdAt,
     url: message.url,
   };
-}
-
-/** The channel, its parent and grandparent (thread → channel → category). */
-export function channelLineage(guild: Guild, channelId: string): (string | null)[] {
-  const channel = guild.channels.cache.get(channelId);
-  const parent = channel?.parentId ? guild.channels.cache.get(channel.parentId) : undefined;
-  return [channelId, channel?.parentId ?? null, parent?.parentId ?? null];
 }
 
 /** Role ids of a member without @everyone, highest first; null when unknown. */

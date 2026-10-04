@@ -12,7 +12,8 @@ import {
   voiceEmbed,
   type MessageSnapshot,
 } from './embeds';
-import { isContentEdit, isIgnoredChannel, logTargetIds } from './filters';
+import { isContentEdit } from '../../core/messages';
+import { isIgnoredChannel, logTargetIds } from './filters';
 
 const DAY = 24 * 60 * 60 * 1000;
 

@@ -11,7 +11,6 @@ import pino from 'pino';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createClient } from '../../../client';
 import type { BotContext } from '../../../core/context';
-import type { AnyEventHandler } from '../../../core/types';
 import type { Env } from '../../../env';
 import { DeletionMarks } from '../../../services/deletion-marks';
 import { GuildSettingsService } from '../../../services/settings';
@@ -24,6 +23,7 @@ import {
   rawOverwrite,
   rawRole,
   rawUser,
+  runHandlers,
   type FakeGateway,
 } from '../../../testing/fake-gateway';
 import { loggingModule } from '../index';
@@ -84,24 +84,13 @@ let client: Client;
 let gateway: FakeGateway;
 let logging: LoggingSettings;
 let ctx: BotContext;
-let pending: Promise<unknown>[];
+let handlers: { settled(): Promise<void> };
 let sent: { embeds: APIEmbed[]; files: readonly unknown[] }[];
-
-function subscribe(handlers: readonly AnyEventHandler[]) {
-  for (const handler of handlers) {
-    const untyped = handler as unknown as {
-      handle(ctx: BotContext, ...args: unknown[]): Promise<void> | void;
-    };
-    client.on(handler.event, (...args: unknown[]) => {
-      pending.push(Promise.resolve(untyped.handle(ctx, ...args)));
-    });
-  }
-}
 
 /** Dispatches a gateway event and waits for the logging handlers to finish. */
 async function emit(type: string, data: unknown) {
   gateway.dispatch(type, data);
-  await Promise.all(pending.splice(0));
+  await handlers.settled();
 }
 
 function captureLog(channelId: string) {
@@ -159,10 +148,9 @@ beforeEach(() => {
     settings,
     deletionMarks: new DeletionMarks(),
   } as unknown as BotContext;
-  pending = [];
   sent = [];
   const events = (loggingModule.events ?? []).filter((h) => h.event !== 'userUpdate');
-  subscribe([...events, createUserUpdateEvent(0)]);
+  handlers = runHandlers(client, ctx, [...events, createUserUpdateEvent(0)]);
   captureLog(LOG);
 });
 

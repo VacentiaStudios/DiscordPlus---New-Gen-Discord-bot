@@ -1,4 +1,5 @@
 import type { BotModule } from '../core/types';
+import { automodModule } from './automod';
 import { generalModule } from './general';
 import { guildsModule } from './guilds';
 import { loggingModule } from './logging';
@@ -10,5 +11,6 @@ export const modules: readonly BotModule[] = [
   guildsModule,
   moderationModule,
   loggingModule,
+  automodModule,
   panelModule,
 ];

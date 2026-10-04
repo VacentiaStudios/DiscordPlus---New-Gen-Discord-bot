@@ -2,7 +2,7 @@
 
 Türkçe konuşan, web panelinden yönetilen yeni nesil Discord moderasyon botu.
 
-> **Durum:** Geliştirme aşamasında. Web paneli, moderasyon komutları, vaka sistemi ve loglama hazır; AutoMod ekleniyor. Ayrıntılar için [Yol haritası](#yol-haritası).
+> **Durum:** v1 kapsamındaki tüm özellikler (web paneli, moderasyon ve vakalar, gelişmiş loglama, AutoMod) hazır. Gerçek bir sunucuda denemek için [Canlı test kontrol listesi](#canlı-test-kontrol-listesi).
 
 ## Neler var?
 
@@ -141,7 +141,7 @@ Panelin **Loglar** sayfasında her kategori için bir kanal seçilir. Kanal seç
 
 | Kategori   | Neler loglanır                                                                                                                                                         |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Moderasyon | Vakalar (uyarı, susturma, atma, yasaklama) ve panelden yapılan ayar değişiklikleri                                                                                     |
+| Moderasyon | Vakalar (uyarı, susturma, atma, yasaklama), AutoMod müdahaleleri ve panelden yapılan ayar değişiklikleri                                                               |
 | Mesaj      | Silinen mesajlar (içerik ve ekler), düzenlenen mesajlar (önce/sonra), toplu silmeler (.txt dökümüyle). `/temizle` ile silinen mesajlar etiketlenir                     |
 | Üye        | Katılma (hesap yaşı; 7 günden yeni hesaplar işaretlenir), ayrılma (roller ve sunucuda kalma süresi), takma ad, rol, kullanıcı adı, görünen ad ve avatar değişiklikleri |
 | Sunucu     | Kanal ve rol oluşturma, silme ve güncelleme (izin farklarıyla birlikte), sunucu adı ve simgesi değişiklikleri                                                          |
@@ -151,6 +151,36 @@ Panelin **Loglar** sayfasında her kategori için bir kanal seçilir. Kanal seç
 - Yoksayılan kanallardaki mesaj ve ses etkinlikleri loglanmaz. Bir kategori yoksayılırsa içindeki tüm kanallar da yoksayılır. "Botları yoksay" açıkken botların mesajları ve ses etkinlikleri de loglanmaz.
 - Mesaj içerikleri veritabanına yazılmaz. Bot son mesajları yalnızca bellekte tutar: varsayılan olarak kanal başına 100 mesaj, en fazla 1 saat (`MESSAGE_CACHE_SIZE`, `MESSAGE_CACHE_LIFETIME_SECONDS`). Daha eski bir mesaj silinirse içeriği gösterilemez.
 - Bot seçilen kanalı göremiyor veya oraya yazamıyorsa panel uyarı gösterir. Toplu silme dökümlerinin dosya olarak eklenebilmesi için mesaj log kanalında **Dosya Ekle** yetkisi gerekir.
+
+## AutoMod
+
+Panelin **AutoMod** sayfasından yönetilir. Yeni sunucularda tüm filtreler kapalıdır; **Önerilen ayarları uygula** düğmesi iyi bir başlangıç sağlar (link filtresi hariç hepsini açar).
+
+| Filtre            | Varsayılan eşik                              | Notlar                                                                                                                                         |
+| ----------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spam              | 5 saniyede 5 mesaj                           | Penceredeki mesajların hepsi toplu silinir, ceza bir kez uygulanır                                                                             |
+| Tekrar eden mesaj | 30 saniyede aynı mesaj 3 kez                 | Büyük/küçük harf ve boşluk farkları yok sayılır; farklı kanallara gönderilenler de sayılır                                                     |
+| Küfür             | Türkçe liste + sunucuya özel kelimeler       | `s1kt1r`, `siiiik`, `s i k`, `a.m.k` gibi yazımlar ve benzer görünen harfler yakalanır; "sıkıntı", "ama", "götürmek" gibi kelimeler yakalanmaz |
+| Davet linki       | —                                            | Sunucunun kendi davetleri serbesttir (kapatılabilir)                                                                                           |
+| Link              | İzin listesi: Discord, YouTube, Tenor, Giphy | İzin listesi veya yasak listesi modu; alt alan adları da kapsanır                                                                              |
+| Büyük harf        | 10 harften uzun mesajda %70                  | Etiketler, emojiler ve linkler hesaba katılmaz                                                                                                 |
+| Toplu etiket      | Tek mesajda 5 farklı kullanıcı veya rol      |                                                                                                                                                |
+
+- **Eylemler:** sadece logla, sil, sil + uyar, sil + sustur, sil + at, sil + yasakla. Cezalar moderasyon komutlarıyla aynı yoldan geçer: kullanıcıya DM gider, vaka açılır, mod-log'a düşer ve uyarı eşikleri devreye girer. Vaka açılmayan müdahaleler mod-log'a AutoMod kaydı olarak düşer.
+- **Muafiyetler:** kanalda Mesajları Yönet yetkisi olanlar ve yöneticiler (kapatılabilir), seçilen roller, kanallar ve kategoriler. Botlar ve webhook mesajları hiçbir zaman denetlenmez.
+- Düzenlenen mesajlar da küfür, davet, link, büyük harf ve etiket filtrelerinden yeniden geçer.
+- Mesaj silindiğinde kanala kısa bir not düşülür ve birkaç saniye sonra kendini siler (kapatılabilir). Silinen mesajlar mesaj logunda "AutoMod: …" etiketiyle görünür.
+- Küfür listesinde bir kelimenin sonuna `*` eklenirse o kökle başlayan tüm kelimeler eşleşir (ör. `aptal*`). Yanlışlıkla yakalanan kelimeler "İzin verilen kelimeler" listesine eklenebilir.
+
+## Canlı test kontrol listesi
+
+Kurulumdan sonra bir test sunucusunda şunları deneyin (botun rolünü, cezalandırılacak test hesabının rolünden yukarı taşıyın):
+
+1. **Giriş ve panel:** <http://localhost:3000/panel> → sunucunuz "Yönet" ile görünüyor; botun olmadığı sunucularda "Botu Ekle" çıkıyor.
+2. **Moderasyon:** `/uyar`, `/sustur` (süre: `1dk`) ve `/yasakla` (süre: `1dk`) çalışıyor; vakalar mod-log kanalına ve panelin Vakalar sayfasına düşüyor. 1 dakikalık yasak kendiliğinden kalkıyor. Discord arayüzünden elle yapılan bir yasaklama da vaka oluyor.
+3. **Ayarların anında geçmesi:** Panelde mod-log kanalını değiştirin; bir sonraki vaka hemen yeni kanala gidiyor ve mod-log'a "ayarları web panelinden güncellendi" notu düşüyor.
+4. **Loglar:** Bir mesajı düzenleyin ve silin, `/temizle miktar:5` çalıştırın (döküm dosyası ekleniyor mu?), bir rolün iznini değiştirin, ses kanalına girip çıkın; her biri seçtiğiniz log kanalına düşüyor.
+5. **AutoMod:** "Moderatörleri muaf tut" ayarını geçici olarak kapatın ya da yetkisiz bir hesap kullanın. Ardından her filtreyi tetikleyin: hızlı mesajlar, aynı mesajı tekrar etmek, küfür, başka sunucunun davet linki, izin verilmeyen bir link, büyük harfli uzun bir mesaj, 5 kişiyi etiketlemek. Mesajlar siliniyor, kanala kısa not düşüyor ve seçilen ceza uygulanıyor mu?
 
 ## Uçtan uca testler
 
@@ -170,5 +200,5 @@ Varsayılan veritabanı `postgres://discordplus:discordplus@localhost:5432/disco
 - [x] **Faz 1:** Discord ile giriş ve sunucu listesi
 - [x] **Faz 2:** Temel moderasyon ve vaka sistemi
 - [x] **Faz 3:** Gelişmiş loglama
-- [ ] **Faz 4:** AutoMod
+- [x] **Faz 4:** AutoMod
 - [ ] **Sonrası:** anti-raid ve doğrulama, AI destekli moderasyon, panelde rol bazlı erişim, İngilizce dil desteği
